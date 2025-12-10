@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Калькулятор калорий</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            max-width: 600px;
+            margin: 30px auto;
+            background: linear-gradient(135deg, #e8fde9, #ffffff);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            text-align: center;
+            color: #2e7d32;
+        }
+        label {
+            font-weight: 600;
+            margin-top: 12px;
+            display: block;
+            color: #1b5e20;
+        }
+        input {
+            padding: 10px;
+            margin-top: 5px;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #a5d6a7;
+            background: #fafffa;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4caf50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background: #4caf50;
+            border: none;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #388e3c;
+            transform: scale(1.02);
+        }
+        .item {
+            background: white;
+            padding: 15px;
+            border-radius: 14px;
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 6px solid #66bb6a;
+        }
+        .delete {
+            background: #ef5350;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .delete:hover {
+            background: #c62828;
+        }
+        #summary {
+            margin-top: 20px;
+            font-size: 18px;
+            padding: 18px;
+            background: #ffffff;
+            border-radius: 14px;
+            border-left: 6px solid #4caf50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        #summary b {
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+<h2>Калькулятор калорий</h2>
+
+<label>Название продукта:</label>
+<input type="text" id="productName" placeholder="Например: Яблоко" />
+
+<label>Калории на 100 г:</label>
+<input type="number" id="kcal" placeholder="ккал" />
+
+<label>Белки на 100 г:</label>
+<input type="number" id="prot" placeholder="г" />
+
+<label>Жиры на 100 г:</label>
+<input type="number" id="fat" placeholder="г" />
+
+<label>Углеводы на 100 г:</label>
+<input type="number" id="carb" placeholder="г" />
+
+<label>Вес (г):</label>
+<input type="number" id="weight" placeholder="например, 100" />
+
+<button onclick="addProduct()">Добавить</button>
+
+<h3>Список продуктов</h3>
+<div id="list"></div>
+
+<div id="summary">
+    <b>Итого за день:</b><br>
+    Калории: <span id="sumKcal">0</span><br>
+    Белки: <span id="sumProt">0</span> г<br>
+    Жиры: <span id="sumFat">0</span> г<br>
+    Углеводы: <span id="sumCarb">0</span> г
+</div>
+
+<script>
+    // Убрали фиксированный список продуктов — теперь пользователь вводит данные сам
+
+    let items = [];
+
+    function addProduct() {
+        const name = document.getElementById('productName').value;
+        const weight = parseFloat(document.getElementById('weight').value);
+        if (!weight || weight <= 0) return alert('Введите корректный вес!');
+
+        const coef = weight / 100;
+        const info = {
+            kcal: parseFloat(document.getElementById('kcal').value),
+            prot: parseFloat(document.getElementById('prot').value),
+            fat: parseFloat(document.getElementById('fat').value),
+            carb: parseFloat(document.getElementById('carb').value),
+        };
+
+        const item = {
+            id: Date.now(),
+            name: name,
+            weight,
+            kcal: info.kcal * coef,
+            prot: info.prot * coef,
+            fat: info.fat * coef,
+            carb: info.carb * coef,
+        };
+
+        items.push(item);
+        renderList();
+    }
+
+    function removeItem(id) {
+        items = items.filter(i => i.id !== id);
+        renderList();
+    }
+
+    function renderList() {
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+
+        let sumK = 0, sumP = 0, sumF = 0, sumC = 0;
+
+        items.forEach(item => {
+            sumK += item.kcal;
+            sumP += item.prot;
+            sumF += item.fat;
+            sumC += item.carb;
+
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.innerHTML = `
+            <div>
+                <b>${item.name}</b> — ${item.weight} г<br>
+                ${item.kcal.toFixed(1)} ккал,
+                Б: ${item.prot.toFixed(1)}, Ж: ${item.fat.toFixed(1)}, У: ${item.carb.toFixed(1)}
+            </div>
+            <button class="delete" onclick="removeItem(${item.id})">X</button>
+        `;
+            list.appendChild(el);
+        });
+
+        document.getElementById('sumKcal').textContent = sumK.toFixed(1);
+        document.getElementById('sumProt').textContent = sumP.toFixed(1);
+        document.getElementById('sumFat').textContent = sumF.toFixed(1);
+        document.getElementById('sumCarb').textContent = sumC.toFixed(1);
+    }
+</script>
+</body>
+</html>
